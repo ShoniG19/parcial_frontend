@@ -14,7 +14,7 @@ class ClientForm extends StatefulWidget {
   });
 
   @override
-  _ClientFormState createState() => _ClientFormState();
+  State<ClientForm> createState() => _ClientFormState();
 }
 
 class _ClientFormState extends State<ClientForm> {
@@ -122,7 +122,7 @@ class _ClientFormState extends State<ClientForm> {
                 TextButton(
                   onPressed: () => Navigator.pop(context),
                   style: TextButton.styleFrom(
-                    foregroundColor: colorScheme.onSurface.withOpacity(0.7),
+                    foregroundColor: colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                   child: Text('Cancelar'),
                 ),

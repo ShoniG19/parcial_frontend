@@ -16,7 +16,7 @@ class VehicleSearchBar extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.onSurface.withOpacity(0.08),
+            color: colorScheme.onSurface.withValues(alpha: 0.08),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -31,7 +31,7 @@ class VehicleSearchBar extends StatelessWidget {
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           suffixIcon: controller.text.isNotEmpty
               ? IconButton(
-                  icon: Icon(Icons.clear, color: colorScheme.onSurface.withOpacity(0.6)),
+                  icon: Icon(Icons.clear, color: colorScheme.onSurface.withValues(alpha: 0.6)),
                   onPressed: controller.clear,
                 )
               : null,

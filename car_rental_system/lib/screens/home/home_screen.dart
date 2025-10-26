@@ -44,8 +44,8 @@ class _HomeScreenState extends State<HomeScreen> {
             currentIndex: navigationProvider.selectedIndex,
             onTap: (index) => navigationProvider.setSelectedIndex(index),
         selectedItemColor: colorScheme.tertiary,
-        unselectedItemColor: colorScheme.onSurface.withOpacity(0.5),
-        backgroundColor: colorScheme.background,
+  unselectedItemColor: colorScheme.onSurface.withValues(alpha: 0.5),
+  backgroundColor: colorScheme.surface,
         type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(

@@ -25,12 +25,12 @@ class VehicleCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.onSurface.withOpacity(0.05),
+            color: colorScheme.onSurface.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
-        border: Border.all(color: color.withOpacity(0.3), width: 2),
+  border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
       ),
       child: ListTile(
         leading: Icon(Icons.directions_car, color: color, size: 32),
@@ -42,7 +42,7 @@ class VehicleCard extends StatelessWidget {
             ),
         subtitle: Text(
           'Año: ${vehicle.anho}\nDisponible: ${vehicle.disponibilidadTexto}',
-          style: TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),
+          style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.7)),
         ),
         trailing: PopupMenuButton<String>(
           onSelected: (value) {

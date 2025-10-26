@@ -13,8 +13,6 @@ class AppTheme {
       onTertiary: Colors.black,
       surface: const Color(0xFFEFEEEE),       // Fondo base de la app
       onSurface: const Color(0xFF181308),     // Texto principal
-      background: const Color(0xFFEFEEEE),
-      onBackground: const Color(0xFF181308),
       error: Colors.red.shade700,
       onError: Colors.white,
     ),

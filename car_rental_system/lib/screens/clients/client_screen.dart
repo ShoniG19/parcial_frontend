@@ -10,7 +10,7 @@ class ClientScreen extends StatefulWidget {
   const ClientScreen({super.key});
 
   @override
-  _ClientScreenState createState() => _ClientScreenState();
+  State<ClientScreen> createState() => _ClientScreenState();
 }
 
 class _ClientScreenState extends State<ClientScreen> {
@@ -87,7 +87,7 @@ class _ClientScreenState extends State<ClientScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancelar', style: TextStyle(color: colorScheme.onSurface.withOpacity(0.7))),
+            child: Text('Cancelar', style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.7))),
           ),
           ElevatedButton(
             onPressed: () {

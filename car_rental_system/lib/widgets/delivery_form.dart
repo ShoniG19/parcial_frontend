@@ -15,7 +15,7 @@ class DeliveryForm extends StatefulWidget {
   });
 
   @override
-  _DeliveryFormState createState() => _DeliveryFormState();
+  State<DeliveryForm> createState() => _DeliveryFormState();
 }
 
 class _DeliveryFormState extends State<DeliveryForm> {
@@ -53,7 +53,7 @@ class _DeliveryFormState extends State<DeliveryForm> {
     super.dispose();
   }
 
-  Future<void> _selectDate(BuildContext context) async {
+  Future<void> _selectDate() async {
     final picked = await showDatePicker(
       context: context,
       initialDate: _fechaEntrega ?? DateTime.now(),
@@ -62,11 +62,13 @@ class _DeliveryFormState extends State<DeliveryForm> {
     );
 
     if (picked != null) {
+      if (!mounted) return;
       final time = await showTimePicker(
         context: context,
         initialTime: TimeOfDay.now(),
       );
 
+      if (!mounted) return;
       if (time != null) {
         setState(() {
           _fechaEntrega = DateTime(
@@ -148,8 +150,9 @@ class _DeliveryFormState extends State<DeliveryForm> {
                           : null;
 
                   return DropdownButtonFormField<String>(
+                    key: ValueKey('reservation:$validSelectedReservationId'),
                     isExpanded: true,
-                    value: validSelectedReservationId,
+                    initialValue: validSelectedReservationId,
                     decoration: InputDecoration(
                       labelText: 'Reserva *',
                       prefixIcon:
@@ -195,7 +198,7 @@ class _DeliveryFormState extends State<DeliveryForm> {
 
               // Fecha y Hora
               InkWell(
-                onTap: () => _selectDate(context),
+                onTap: _selectDate,
                 child: InputDecorator(
                   decoration: InputDecoration(
                     labelText: 'Fecha y Hora de Entrega *',
@@ -262,7 +265,7 @@ class _DeliveryFormState extends State<DeliveryForm> {
                       'Cancelar',
                       style: TextStyle(
                           color:
-                              colorScheme.onSurface.withOpacity(0.7)),
+                              colorScheme.onSurface.withValues(alpha: 0.7)),
                     ),
                   ),
                   const SizedBox(width: 8),

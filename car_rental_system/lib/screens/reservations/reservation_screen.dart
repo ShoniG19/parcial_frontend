@@ -10,7 +10,7 @@ class ReservationScreen extends StatefulWidget {
   const ReservationScreen({super.key});
 
   @override
-  _ReservationScreenState createState() => _ReservationScreenState();
+  State<ReservationScreen> createState() => _ReservationScreenState();
 }
 
 class _ReservationScreenState extends State<ReservationScreen> {
@@ -69,7 +69,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
               onPressed: () => Navigator.pop(context),
               child: Text(
                 'Cancelar',
-                style: TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),
+                style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.7)),
               ),
             ),
             ElevatedButton(

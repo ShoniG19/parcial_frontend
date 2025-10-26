@@ -42,9 +42,9 @@ class DeliveryCard extends StatelessWidget {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Reserva: #${delivery.idReserva}', style: TextStyle(color: colorScheme.onSurface.withOpacity(0.8))),
-            Text('Cliente: $clientName', style: TextStyle(color: colorScheme.onSurface.withOpacity(0.8))),
-            Text('Fecha: ${_formatDate(delivery.fechaEntregaReal)}', style: TextStyle(color: colorScheme.onSurface.withOpacity(0.8))),
+            Text('Reserva: #${delivery.idReserva}', style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.8))),
+            Text('Cliente: $clientName', style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.8))),
+            Text('Fecha: ${_formatDate(delivery.fechaEntregaReal)}', style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.8))),
           ],
         ),
         children: [

@@ -39,7 +39,7 @@ class ClientCard extends StatelessWidget {
             final count = provider.getReservationCountForClient(client.idCliente);
             return Text(
               'Documento: ${client.documento}\nReservas: $count',
-              style: TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),
+              style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.7)),
             );
           },
         ),

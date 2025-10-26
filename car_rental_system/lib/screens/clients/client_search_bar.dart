@@ -15,11 +15,11 @@ class ClientSearchBar extends StatelessWidget {
         controller: controller,
         decoration: InputDecoration(
           hintText: 'Buscar por nombre o documento...',
-          hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.6)),
+          hintStyle: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.6)),
           prefixIcon: Icon(Icons.search, color: colorScheme.primary),
           suffixIcon: controller.text.isNotEmpty
               ? IconButton(
-                  icon: Icon(Icons.clear, color: colorScheme.onSurface.withOpacity(0.7)),
+                  icon: Icon(Icons.clear, color: colorScheme.onSurface.withValues(alpha: 0.7)),
                   onPressed: controller.clear,
                 )
               : null,
@@ -27,7 +27,7 @@ class ClientSearchBar extends StatelessWidget {
           fillColor: colorScheme.surface,
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: colorScheme.outlineVariant.withOpacity(0.4)),
+            borderSide: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),

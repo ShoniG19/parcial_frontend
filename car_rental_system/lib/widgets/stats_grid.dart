@@ -49,7 +49,7 @@ class StatsGrid extends StatelessWidget {
             title: 'Total Entregas',
             value: '$totalDeliveries',
             icon: Icons.assignment_turned_in,
-            color: colorScheme.primary.withOpacity(0.8),
+            color: colorScheme.primary.withValues(alpha: 0.8),
         ),
       ],
     );

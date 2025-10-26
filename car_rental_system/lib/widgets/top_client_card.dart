@@ -46,7 +46,7 @@ class TopClientCard extends StatelessWidget {
                 ),
               ),
               Text('Documento: ${client!.documento}',
-                  style: TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),
+                  style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.7)),
               ),
               Text('Total de reservas: $reservationCount',
                   style: TextStyle(
@@ -57,7 +57,7 @@ class TopClientCard extends StatelessWidget {
             ] else
               Text('No hay datos disponibles',
                   style: TextStyle(
-                      color: colorScheme.onSurface.withOpacity(0.5), fontStyle: FontStyle.italic)),
+                      color: colorScheme.onSurface.withValues(alpha: 0.5), fontStyle: FontStyle.italic)),
           ],
         ),
       ),

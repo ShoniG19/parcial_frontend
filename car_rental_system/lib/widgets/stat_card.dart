@@ -41,7 +41,7 @@ class StatCard extends StatelessWidget {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: TextStyle(color: colorScheme.onSurface.withOpacity(0.6)),
+              style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.6)),
             ),
           ],
         ),

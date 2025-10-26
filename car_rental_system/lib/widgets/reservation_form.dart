@@ -10,7 +10,7 @@ class ReservationForm extends StatefulWidget {
   const ReservationForm({super.key, this.reservation, required this.onSave});
 
   @override
-  _ReservationFormState createState() => _ReservationFormState();
+  State<ReservationForm> createState() => _ReservationFormState();
 }
 
 class _ReservationFormState extends State<ReservationForm> {
@@ -124,7 +124,7 @@ class _ReservationFormState extends State<ReservationForm> {
           builder: (context, provider, _) {
             final clients = provider.clients;
             var vehicles = provider.getAvailableVehicles();
-            
+
             if (widget.reservation != null && widget.reservation!.idVehiculo.isNotEmpty) {
               final currentVehicle = provider.getVehicleById(widget.reservation!.idVehiculo);
               if (currentVehicle != null && !vehicles.any((v) => v.idVehiculo == currentVehicle.idVehiculo)) {
@@ -168,13 +168,14 @@ class _ReservationFormState extends State<ReservationForm> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 DropdownButtonFormField<String>(
+                  key: ValueKey('client:$validSelectedClientId'),
                   isExpanded: true,
                   decoration: InputDecoration(
                     labelText: 'Cliente *',
                     prefixIcon: Icon(Icons.person, color: colorScheme.primary),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  value: validSelectedClientId,
+                  initialValue: validSelectedClientId,
                   items: () {
                     // Filtrar clientes para evitar IDs duplicados
                     final Set<String> seenIds = <String>{};
@@ -202,13 +203,14 @@ class _ReservationFormState extends State<ReservationForm> {
                 const SizedBox(height: 16),
 
                 DropdownButtonFormField<String>(
+                  key: ValueKey('vehicle:$validSelectedVehicleId'),
                   isExpanded: true,
                   decoration: InputDecoration(
                     labelText: 'Vehículo *',
                     prefixIcon: Icon(Icons.directions_car, color: colorScheme.primary),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  value: validSelectedVehicleId,
+                  initialValue: validSelectedVehicleId,
                   items: () {
                     // Filtrar vehículos para evitar IDs duplicados
                     final Set<String> seenIds = <String>{};
@@ -217,8 +219,7 @@ class _ReservationFormState extends State<ReservationForm> {
                     for (final vehicle in vehicles) {
                       if (!seenIds.contains(vehicle.idVehiculo)) {
                         seenIds.add(vehicle.idVehiculo);
-                        final vehicleName = '${vehicle.marca} ${vehicle.modelo} (${vehicle.anho})' +
-                            (vehicle.disponible ? '' : ' (no disponible)');
+            final vehicleName = '${vehicle.marca} ${vehicle.modelo} (${vehicle.anho})${vehicle.disponible ? '' : ' (no disponible)'}';
                         uniqueItems.add(DropdownMenuItem<String>(
                           value: vehicle.idVehiculo,
                           child: Text(

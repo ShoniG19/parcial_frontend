@@ -34,13 +34,13 @@ class DeliveryList extends StatelessWidget {
                 Icon(
                   Icons.assignment_return,
                   size: 64,
-                  color: colorScheme.primary.withOpacity(0.6),
+                  color: colorScheme.primary.withValues(alpha: 0.6),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   'No hay entregas registradas',
                   style: TextStyle(
-                    color: colorScheme.onSurface.withOpacity(0.6),
+                    color: colorScheme.onSurface.withValues(alpha: 0.6),
                     fontSize: 16,
                   ),
                   textAlign: TextAlign.center,

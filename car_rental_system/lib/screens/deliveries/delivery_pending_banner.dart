@@ -14,7 +14,7 @@ class DeliveryPendingBanner extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colorScheme.tertiary.withOpacity(0.15),
+  color: colorScheme.tertiary.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(

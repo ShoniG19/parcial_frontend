@@ -12,7 +12,7 @@ class VehicleForm extends StatefulWidget {
   });
 
   @override
-  _VehicleFormState createState() => _VehicleFormState();
+  State<VehicleForm> createState() => _VehicleFormState();
 }
 
 class _VehicleFormState extends State<VehicleForm> {
@@ -130,7 +130,8 @@ class _VehicleFormState extends State<VehicleForm> {
                   Switch(
                     value: _disponible,
                     onChanged: (v) => setState(() => _disponible = v),
-                    activeColor: colorScheme.primary,
+                    activeThumbColor: colorScheme.primary,
+                    activeTrackColor: colorScheme.primary.withValues(alpha: 0.4),
                   ),
                 ],
               ),
@@ -143,7 +144,7 @@ class _VehicleFormState extends State<VehicleForm> {
                 TextButton(
                   onPressed: () => Navigator.pop(context),
                   style: TextButton.styleFrom(
-                      foregroundColor: colorScheme.onSurface.withOpacity(0.7)),
+                      foregroundColor: colorScheme.onSurface.withValues(alpha: 0.7)),
                   child: Text('Cancelar'),
                 ),
                 const SizedBox(width: 8),

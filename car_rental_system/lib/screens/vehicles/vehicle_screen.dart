@@ -10,7 +10,7 @@ class VehicleScreen extends StatefulWidget {
   const VehicleScreen({super.key});
 
   @override
-  _VehicleScreenState createState() => _VehicleScreenState();
+  State<VehicleScreen> createState() => _VehicleScreenState();
 }
 
 class _VehicleScreenState extends State<VehicleScreen> {
@@ -90,7 +90,7 @@ class _VehicleScreenState extends State<VehicleScreen> {
               onPressed: () => Navigator.pop(context),
               child: Text(
                 'Cancelar',
-                style: TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),
+                style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.7)),
               ),
             ),
             ElevatedButton(

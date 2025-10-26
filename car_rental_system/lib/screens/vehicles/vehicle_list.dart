@@ -27,7 +27,7 @@ class VehicleList extends StatelessWidget {
           children: [
             Icon(Icons.directions_car_outlined, size: 64, color: colorScheme.primary),
             const SizedBox(height: 16),
-            Text('No hay vehículos registrados', style: TextStyle(color: colorScheme.onSurface.withOpacity(0.7))),
+            Text('No hay vehículos registrados', style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.7))),
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: onAddFirst,

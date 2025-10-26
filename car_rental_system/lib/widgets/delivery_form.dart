@@ -9,10 +9,10 @@ class DeliveryForm extends StatefulWidget {
   final Function(Delivery) onSave;
 
   const DeliveryForm({
-    Key? key,
+    super.key,
     this.delivery,
     required this.onSave,
-  }) : super(key: key);
+  });
 
   @override
   _DeliveryFormState createState() => _DeliveryFormState();
@@ -20,25 +20,27 @@ class DeliveryForm extends StatefulWidget {
 
 class _DeliveryFormState extends State<DeliveryForm> {
   final _formKey = GlobalKey<FormState>();
-  
+
   Reservation? _selectedReservation;
   DateTime? _fechaEntrega;
-  final TextEditingController _observacionesController = TextEditingController();
-  final TextEditingController _kilometrajeController = TextEditingController();
+  final _observacionesController = TextEditingController();
+  final _kilometrajeController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+
     if (widget.delivery != null) {
       _fechaEntrega = widget.delivery!.fechaEntregaReal;
       _observacionesController.text = widget.delivery!.observaciones ?? '';
-      _kilometrajeController.text = widget.delivery!.kilometrajeFinal?.toString() ?? '';
-      
-      // Encontrar la reserva asociada
+      _kilometrajeController.text =
+          widget.delivery!.kilometrajeFinal?.toString() ?? '';
+
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final provider = Provider.of<CarRentalProvider>(context, listen: false);
         setState(() {
-          _selectedReservation = provider.getReservationById(widget.delivery!.idReserva);
+          _selectedReservation =
+              provider.getReservationById(widget.delivery!.idReserva);
         });
       });
     }
@@ -52,19 +54,19 @@ class _DeliveryFormState extends State<DeliveryForm> {
   }
 
   Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
+    final picked = await showDatePicker(
       context: context,
       initialDate: _fechaEntrega ?? DateTime.now(),
-      firstDate: DateTime.now().subtract(Duration(days: 365)),
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now(),
     );
-    
+
     if (picked != null) {
-      final TimeOfDay? time = await showTimePicker(
+      final time = await showTimePicker(
         context: context,
         initialTime: TimeOfDay.now(),
       );
-      
+
       if (time != null) {
         setState(() {
           _fechaEntrega = DateTime(
@@ -80,187 +82,205 @@ class _DeliveryFormState extends State<DeliveryForm> {
   }
 
   void _saveDelivery() {
-    if (_formKey.currentState!.validate()) {
-      if (_selectedReservation == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Debe seleccionar una reserva'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
+    if (!_formKey.currentState!.validate()) return;
 
-      if (_fechaEntrega == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Debe seleccionar la fecha de entrega'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
-
-      final provider = Provider.of<CarRentalProvider>(context, listen: false);
-      
-      final delivery = Delivery(
-        idEntrega: widget.delivery?.idEntrega ?? provider.generateDeliveryId(),
-        idReserva: _selectedReservation!.idReserva,
-        fechaEntregaReal: _fechaEntrega!,
-        observaciones: _observacionesController.text.trim().isEmpty 
-            ? null 
-            : _observacionesController.text.trim(),
-        kilometrajeFinal: _kilometrajeController.text.trim().isEmpty 
-            ? null 
-            : int.tryParse(_kilometrajeController.text.trim()),
+    if (_selectedReservation == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Debe seleccionar una reserva')),
       );
-
-      widget.onSave(delivery);
+      return;
     }
+
+    if (_fechaEntrega == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Debe seleccionar la fecha de entrega')),
+      );
+      return;
+    }
+
+    final provider = Provider.of<CarRentalProvider>(context, listen: false);
+
+    final delivery = Delivery(
+      idEntrega:
+          widget.delivery?.idEntrega ?? provider.generateDeliveryId(),
+      idReserva: _selectedReservation!.idReserva,
+      fechaEntregaReal: _fechaEntrega!,
+      observaciones: _observacionesController.text.trim().isEmpty
+          ? null
+          : _observacionesController.text.trim(),
+      kilometrajeFinal: _kilometrajeController.text.trim().isEmpty
+          ? null
+          : int.tryParse(_kilometrajeController.text.trim()),
+    );
+
+    widget.onSave(delivery);
   }
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return SizedBox(
       width: MediaQuery.of(context).size.width * 0.9,
       child: Form(
         key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Selector de Reserva (solo reservas activas para nuevas entregas)
-            Consumer<CarRentalProvider>(
-              builder: (context, provider, child) {
-                final reservations = widget.delivery != null
-                    ? provider.reservations.where((r) => 
-                        r.activa || r.idReserva == widget.delivery!.idReserva).toList()
-                    : provider.getActiveReservations();
-                
-                return DropdownButtonFormField<Reservation>(
-                  value: _selectedReservation,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Selector de Reserva
+              Consumer<CarRentalProvider>(
+                builder: (context, provider, _) {
+                  final reservations = widget.delivery != null
+                      ? provider.reservations
+                          .where((r) =>
+                              r.activa ||
+                              r.idReserva == widget.delivery!.idReserva)
+                          .toList()
+                      : provider.getActiveReservations();
+
+                  final validSelectedReservationId =
+                      _selectedReservation != null &&
+                              reservations.any((r) =>
+                                  r.idReserva ==
+                                  _selectedReservation!.idReserva)
+                          ? _selectedReservation!.idReserva
+                          : null;
+
+                  return DropdownButtonFormField<String>(
+                    isExpanded: true,
+                    value: validSelectedReservationId,
+                    decoration: InputDecoration(
+                      labelText: 'Reserva *',
+                      prefixIcon:
+                          Icon(Icons.book, color: colorScheme.primary),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      helperText: widget.delivery == null
+                          ? 'Solo se muestran reservas activas'
+                          : null,
+                    ),
+                    items: reservations.map((r) {
+                      final client = provider.getClientById(r.idCliente);
+                      final vehicle = provider.getVehicleById(r.idVehiculo);
+                      final displayText = 
+                          'Reserva #${r.idReserva} - ${client?.nombreCompleto ?? 'Cliente desconocido'} - ${vehicle?.marca ?? ''} ${vehicle?.modelo ?? ''}';
+                      return DropdownMenuItem<String>(
+                        value: r.idReserva,
+                        child: Tooltip(
+                          message: displayText,
+                          child: Text(
+                            displayText,
+                            style: const TextStyle(fontSize: 14),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() {
+                          _selectedReservation = reservations.firstWhere(
+                              (r) => r.idReserva == value);
+                        });
+                      }
+                    },
+                    validator: (value) =>
+                        value == null ? 'Debe seleccionar una reserva' : null,
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // Fecha y Hora
+              InkWell(
+                onTap: () => _selectDate(context),
+                child: InputDecorator(
                   decoration: InputDecoration(
-                    labelText: 'Reserva *',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.book),
-                    helperText: widget.delivery == null 
-                        ? 'Solo se muestran reservas activas' 
-                        : null,
+                    labelText: 'Fecha y Hora de Entrega *',
+                    prefixIcon: Icon(Icons.access_time,
+                        color: colorScheme.primary),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12)),
                   ),
-                  items: reservations.map((reservation) {
-                    final client = provider.getClientById(reservation.idCliente);
-                    final vehicle = provider.getVehicleById(reservation.idVehiculo);
-                    
-                    return DropdownMenuItem<Reservation>(
-                      value: reservation,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Reserva #${reservation.idReserva}',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            '${client?.nombreCompleto ?? 'Cliente desconocido'}',
-                            style: TextStyle(fontSize: 12),
-                          ),
-                          Text(
-                            '${vehicle?.marca ?? ''} ${vehicle?.modelo ?? ''} (${vehicle?.ano ?? ''})',
-                            style: TextStyle(fontSize: 12, color: Colors.grey),
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: reservations.isNotEmpty ? (reservation) {
-                    setState(() {
-                      _selectedReservation = reservation;
-                    });
-                  } : null,
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Debe seleccionar una reserva';
-                    }
-                    return null;
-                  },
-                );
-              },
-            ),
-            SizedBox(height: 16),
-            
-            // Fecha y Hora de Entrega
-            InkWell(
-              onTap: () => _selectDate(context),
-              child: InputDecorator(
+                  child: Text(
+                    _fechaEntrega == null
+                        ? 'Seleccionar fecha y hora'
+                        : '${_fechaEntrega!.day.toString().padLeft(2, '0')}/${_fechaEntrega!.month.toString().padLeft(2, '0')}/${_fechaEntrega!.year} ${_fechaEntrega!.hour.toString().padLeft(2, '0')}:${_fechaEntrega!.minute.toString().padLeft(2, '0')}',
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Kilometraje Final
+              TextFormField(
+                controller: _kilometrajeController,
                 decoration: InputDecoration(
-                  labelText: 'Fecha y Hora de Entrega *',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.access_time),
+                  labelText: 'Kilometraje Final (km)',
+                  prefixIcon:
+                      Icon(Icons.speed, color: colorScheme.primary),
+                  helperText: 'Campo opcional',
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
-                child: Text(
-                  _fechaEntrega == null 
-                      ? 'Seleccionar fecha y hora'
-                      : '${_fechaEntrega!.day.toString().padLeft(2, '0')}/${_fechaEntrega!.month.toString().padLeft(2, '0')}/${_fechaEntrega!.year} ${_fechaEntrega!.hour.toString().padLeft(2, '0')}:${_fechaEntrega!.minute.toString().padLeft(2, '0')}',
-                ),
-              ),
-            ),
-            SizedBox(height: 16),
-            
-            // Kilometraje Final (opcional)
-            TextFormField(
-              controller: _kilometrajeController,
-              decoration: InputDecoration(
-                labelText: 'Kilometraje Final (km)',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.speed),
-                helperText: 'Campo opcional',
-              ),
-              keyboardType: TextInputType.number,
-              validator: (value) {
-                if (value != null && value.trim().isNotEmpty) {
-                  final km = int.tryParse(value.trim());
-                  if (km == null || km < 0) {
-                    return 'Debe ser un número válido mayor a 0';
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value != null && value.trim().isNotEmpty) {
+                    final km = int.tryParse(value.trim());
+                    if (km == null || km < 0) {
+                      return 'Debe ser un número válido mayor a 0';
+                    }
                   }
-                }
-                return null;
-              },
-            ),
-            SizedBox(height: 16),
-            
-            // Observaciones (opcional)
-            TextFormField(
-              controller: _observacionesController,
-              decoration: InputDecoration(
-                labelText: 'Observaciones',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.note),
-                helperText: 'Campo opcional para notas adicionales',
+                  return null;
+                },
               ),
-              maxLines: 3,
-              validator: (value) {
-                if (value != null && value.trim().length > 500) {
-                  return 'Las observaciones no pueden exceder 500 caracteres';
-                }
-                return null;
-              },
-            ),
-            
-            SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text('Cancelar'),
+              const SizedBox(height: 16),
+
+              // Observaciones
+              TextFormField(
+                controller: _observacionesController,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  labelText: 'Observaciones',
+                  prefixIcon:
+                      Icon(Icons.note, color: colorScheme.primary),
+                  helperText: 'Campo opcional para notas adicionales',
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
-                SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: _saveDelivery,
-                  child: Text(widget.delivery == null ? 'Registrar Entrega' : 'Actualizar'),
-                ),
-              ],
-            ),
-          ],
+              ),
+              const SizedBox(height: 24),
+
+              // Botones de acción
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      'Cancelar',
+                      style: TextStyle(
+                          color:
+                              colorScheme.onSurface.withOpacity(0.7)),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: _saveDelivery,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                    ),
+                    child: Text(
+                        widget.delivery == null ? 'Registrar' : 'Actualizar'),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

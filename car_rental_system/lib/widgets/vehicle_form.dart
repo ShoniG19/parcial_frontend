@@ -6,10 +6,10 @@ class VehicleForm extends StatefulWidget {
   final Function(Vehicle) onSave;
 
   const VehicleForm({
-    Key? key,
+    super.key,
     this.vehicle,
     required this.onSave,
-  }) : super(key: key);
+  });
 
   @override
   _VehicleFormState createState() => _VehicleFormState();
@@ -27,7 +27,7 @@ class _VehicleFormState extends State<VehicleForm> {
     super.initState();
     _marcaController = TextEditingController(text: widget.vehicle?.marca ?? '');
     _modeloController = TextEditingController(text: widget.vehicle?.modelo ?? '');
-    _anoController = TextEditingController(text: widget.vehicle?.ano.toString() ?? '');
+    _anoController = TextEditingController(text: widget.vehicle?.anho.toString() ?? '');
     _disponible = widget.vehicle?.disponible ?? true;
   }
 
@@ -46,7 +46,7 @@ class _VehicleFormState extends State<VehicleForm> {
                    DateTime.now().millisecondsSinceEpoch.toString(),
         marca: _marcaController.text.trim(),
         modelo: _modeloController.text.trim(),
-        ano: int.parse(_anoController.text),
+        anho: int.parse(_anoController.text),
         disponible: _disponible,
       );
 
@@ -56,143 +56,132 @@ class _VehicleFormState extends State<VehicleForm> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return SingleChildScrollView(
       child: Form(
         key: _formKey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Campo Marca
-            TextFormField(
+            _buildTextField(
               controller: _marcaController,
-              decoration: InputDecoration(
-                labelText: 'Marca *',
-                hintText: 'Ej: Toyota, Ford, Honda',
-                prefixIcon: Icon(Icons.branding_watermark),
-                border: OutlineInputBorder(),
-              ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'La marca es obligatoria';
-                }
-                if (value.trim().length < 2) {
-                  return 'La marca debe tener al menos 2 caracteres';
-                }
-                return null;
-              },
+              label: 'Marca *',
+              hint: 'Ej: Toyota, Ford, Honda',
+              icon: Icons.branding_watermark,
+              validator: (v) => v == null || v.trim().isEmpty
+                  ? 'La marca es obligatoria'
+                  : v.trim().length < 2
+                      ? 'Debe tener al menos 2 caracteres'
+                      : null,
             ),
-            SizedBox(height: 16),
-
-            // Campo Modelo
-            TextFormField(
+            const SizedBox(height: 16),
+            _buildTextField(
               controller: _modeloController,
-              decoration: InputDecoration(
-                labelText: 'Modelo *',
-                hintText: 'Ej: Corolla, Focus, Civic',
-                prefixIcon: Icon(Icons.model_training),
-                border: OutlineInputBorder(),
-              ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'El modelo es obligatorio';
-                }
-                if (value.trim().length < 2) {
-                  return 'El modelo debe tener al menos 2 caracteres';
-                }
-                return null;
-              },
+              label: 'Modelo *',
+              hint: 'Ej: Corolla, Focus, Civic',
+              icon: Icons.model_training,
+              validator: (v) => v == null || v.trim().isEmpty
+                  ? 'El modelo es obligatorio'
+                  : v.trim().length < 2
+                      ? 'Debe tener al menos 2 caracteres'
+                      : null,
             ),
-            SizedBox(height: 16),
-
-            // Campo Año
-            TextFormField(
+            const SizedBox(height: 16),
+            _buildTextField(
               controller: _anoController,
-              decoration: InputDecoration(
-                labelText: 'Año *',
-                hintText: 'Ej: ${DateTime.now().year}',
-                prefixIcon: Icon(Icons.calendar_today),
-                border: OutlineInputBorder(),
-              ),
+              label: 'Año *',
+              hint: 'Ej: ${DateTime.now().year}',
+              icon: Icons.calendar_today,
               keyboardType: TextInputType.number,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'El año es obligatorio';
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) return 'El año es obligatorio';
+                final year = int.tryParse(v);
+                if (year == null) return 'Debe ser un número válido';
+                final current = DateTime.now().year;
+                if (year < 1900 || year > current + 1) {
+                  return 'Debe estar entre 1900 y ${current + 1}';
                 }
-                
-                final ano = int.tryParse(value);
-                if (ano == null) {
-                  return 'El año debe ser un número válido';
-                }
-
-                final currentYear = DateTime.now().year;
-                if (ano < 1900 || ano > currentYear + 1) {
-                  return 'El año debe estar entre 1900 y ${currentYear + 1}';
-                }
-
                 return null;
               },
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
 
-            // Switch Disponibilidad
             Container(
               padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: colorScheme.outlineVariant),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
                 children: [
                   Icon(
                     _disponible ? Icons.check_circle : Icons.cancel,
-                    color: _disponible ? Colors.green : Colors.red,
+                    color: _disponible
+                        ? colorScheme.primary
+                        : colorScheme.error,
                   ),
-                  SizedBox(width: 12),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Disponibilidad',
-                      style: TextStyle(fontSize: 16),
-                    ),
+                      style: TextStyle(color: colorScheme.onSurface)),
                   ),
                   Switch(
                     value: _disponible,
-                    onChanged: (value) {
-                      setState(() {
-                        _disponible = value;
-                      });
-                    },
-                    activeColor: Colors.green,
+                    onChanged: (v) => setState(() => _disponible = v),
+                    activeColor: colorScheme.primary,
                   ),
                 ],
               ),
             ),
             SizedBox(height: 24),
 
-            // Botones de acción
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text('Cancelar'),
+                  onPressed: () => Navigator.pop(context),
                   style: TextButton.styleFrom(
-                    foregroundColor: Colors.grey,
-                  ),
+                      foregroundColor: colorScheme.onSurface.withOpacity(0.7)),
+                  child: Text('Cancelar'),
                 ),
+                const SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: _saveVehicle,
-                  child: Text(widget.vehicle == null ? 'Agregar' : 'Actualizar'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
                   ),
+                  child: Text(widget.vehicle == null ? 'Agregar' : 'Actualizar'),
                 ),
               ],
             ),
           ],
         ),
       ),
+    );
+  }
+  
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    String? Function(String?)? validator,
+    TextInputType? keyboardType,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        prefixIcon: Icon(icon, color: colorScheme.primary),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      validator: validator,
     );
   }
 }

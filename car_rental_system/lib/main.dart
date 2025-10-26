@@ -1,43 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/car_rental_provider.dart';
-import 'screens/home_screen.dart';
-import 'screens/vehicle_screen.dart';
-import 'screens/client_screen.dart';
-import 'screens/reservation_screen.dart';
-import 'screens/delivery_screen.dart';
-import 'screens/statistics_screen.dart';
+import 'providers/navigation_provider.dart';
+import 'screens/home/home_screen.dart';
+import 'screens/vehicles/vehicle_screen.dart';
+import 'screens/clients/client_screen.dart';
+import 'screens/reservations/reservation_screen.dart';
+import 'screens/deliveries/delivery_screen.dart';
+import 'screens/statistics/statistics_screen.dart';
+import 'theme/app_theme.dart';
 
 void main() {
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => CarRentalProvider(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => CarRentalProvider()),
+        ChangeNotifierProvider(create: (context) => NavigationProvider()),
+      ],
       child: MaterialApp(
         title: 'Sistema de Alquiler de Autos',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          appBarTheme: AppBarTheme(
-            backgroundColor: Colors.blue,
-            foregroundColor: Colors.white,
-            elevation: 4,
-          ),
-          cardTheme: CardThemeData(
-            elevation: 4,
-            margin: EdgeInsets.all(8),
-          ),
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
-          ),
-        ),
+        theme: AppTheme.lightTheme,
         initialRoute: '/',
         routes: {
           '/': (context) => HomeScreen(),

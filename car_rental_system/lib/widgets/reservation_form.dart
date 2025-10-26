@@ -1,19 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/reservation.dart';
-import '../models/client.dart';
-import '../models/vehicle.dart';
 import '../providers/car_rental_provider.dart';
 
 class ReservationForm extends StatefulWidget {
   final Reservation? reservation;
   final Function(Reservation) onSave;
 
-  const ReservationForm({
-    Key? key,
-    this.reservation,
-    required this.onSave,
-  }) : super(key: key);
+  const ReservationForm({super.key, this.reservation, required this.onSave});
 
   @override
   _ReservationFormState createState() => _ReservationFormState();
@@ -21,256 +15,305 @@ class ReservationForm extends StatefulWidget {
 
 class _ReservationFormState extends State<ReservationForm> {
   final _formKey = GlobalKey<FormState>();
-  
-  Client? _selectedClient;
-  Vehicle? _selectedVehicle;
-  DateTime? _fechaInicio;
-  DateTime? _fechaFin;
+  String? _selectedClientId;
+  String? _selectedVehicleId;
+  DateTime? _inicio;
+  DateTime? _fin;
+  String? _fechaError;
+
+  String? _validateDates() {
+    if (_inicio == null || _fin == null) return null;
+    
+    if (_fin!.isBefore(_inicio!)) {
+      return 'La fecha de fin debe ser posterior a la fecha de inicio';
+    }
+    
+    if (_inicio!.isBefore(DateTime.now().subtract(const Duration(days: 1)))) {
+      return 'La fecha de inicio no puede ser en el pasado';
+    }
+    
+    final difference = _fin!.difference(_inicio!);
+    if (difference.inDays < 1) {
+      return 'La reserva debe ser de al menos 1 día';
+    }
+    
+    if (difference.inDays > 365) {
+      return 'La reserva no puede exceder 1 año';
+    }
+    
+    return null;
+  }
+
+  Future<void> _pickDate(bool isStart) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: isStart ? (_inicio ?? DateTime.now()) : (_fin ?? DateTime.now().add(const Duration(days: 1))),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    
+    if (picked != null) {
+      setState(() {
+        if (isStart) {
+          _inicio = picked;
+          if (_fin == null || _fin!.isBefore(_inicio!)) {
+            _fin = _inicio!.add(const Duration(days: 1));
+          }
+        } else {
+          _fin = picked;
+        }
+        _fechaError = _validateDates();
+      });
+    }
+  }
+
+  void _save() {
+    if (!_formKey.currentState!.validate()) return;
+    
+    if (_selectedClientId == null || _selectedVehicleId == null || _inicio == null || _fin == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Complete todos los campos obligatorios')),
+      );
+      return;
+    }
+
+    _fechaError = _validateDates();
+    if (_fechaError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_fechaError!)),
+      );
+      return;
+    }
+
+    final provider = Provider.of<CarRentalProvider>(context, listen: false);
+    final reservation = Reservation(
+      idReserva: widget.reservation?.idReserva ?? provider.generateReservationId(),
+      idCliente: _selectedClientId!,
+      idVehiculo: _selectedVehicleId!,
+      fechaInicio: _inicio!,
+      fechaFin: _fin!,
+      activa: widget.reservation?.activa ?? true,
+    );
+    widget.onSave(reservation);
+  }
 
   @override
   void initState() {
     super.initState();
     if (widget.reservation != null) {
-      _fechaInicio = widget.reservation!.fechaInicio;
-      _fechaFin = widget.reservation!.fechaFin;
-      // Necesitaremos encontrar el cliente y vehículo seleccionados
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        final provider = Provider.of<CarRentalProvider>(context, listen: false);
         setState(() {
-          _selectedClient = provider.getClientById(widget.reservation!.idCliente);
-          _selectedVehicle = provider.getVehicleById(widget.reservation!.idVehiculo);
+          _selectedClientId = widget.reservation!.idCliente;
+          _selectedVehicleId = widget.reservation!.idVehiculo;
+          _inicio = widget.reservation!.fechaInicio;
+          _fin = widget.reservation!.fechaFin;
         });
       });
     }
   }
 
-  Future<void> _selectDate(BuildContext context, bool isStartDate) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: isStartDate 
-          ? (_fechaInicio ?? DateTime.now())
-          : (_fechaFin ?? DateTime.now().add(Duration(days: 1))),
-      firstDate: DateTime.now().subtract(Duration(days: 1)),
-      lastDate: DateTime.now().add(Duration(days: 365)),
-    );
-    
-    if (picked != null) {
-      setState(() {
-        if (isStartDate) {
-          _fechaInicio = picked;
-          // Si la fecha de fin es anterior a la nueva fecha de inicio, ajustarla
-          if (_fechaFin != null && _fechaFin!.isBefore(picked)) {
-            _fechaFin = picked.add(Duration(days: 1));
-          }
-        } else {
-          _fechaFin = picked;
-        }
-      });
-    }
-  }
-
-  void _saveReservation() {
-    if (_formKey.currentState!.validate()) {
-      if (_selectedClient == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Debe seleccionar un cliente'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
-
-      if (_selectedVehicle == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Debe seleccionar un vehículo'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
-
-      if (_fechaInicio == null || _fechaFin == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Debe seleccionar las fechas'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
-
-      final provider = Provider.of<CarRentalProvider>(context, listen: false);
-      
-      final reservation = Reservation(
-        idReserva: widget.reservation?.idReserva ?? provider.generateReservationId(),
-        idCliente: _selectedClient!.idCliente,
-        idVehiculo: _selectedVehicle!.idVehiculo,
-        fechaInicio: _fechaInicio!,
-        fechaFin: _fechaFin!,
-        activa: widget.reservation?.activa ?? true,
-      );
-
-      widget.onSave(reservation);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return SizedBox(
       width: MediaQuery.of(context).size.width * 0.9,
       child: Form(
         key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Selector de Cliente
-            Consumer<CarRentalProvider>(
-              builder: (context, provider, child) {
-                final clients = provider.clients;
-                return DropdownButtonFormField<Client>(
-                  value: _selectedClient,
+        child: Consumer<CarRentalProvider>(
+          builder: (context, provider, _) {
+            final clients = provider.clients;
+            var vehicles = provider.getAvailableVehicles();
+            
+            if (widget.reservation != null && widget.reservation!.idVehiculo.isNotEmpty) {
+              final currentVehicle = provider.getVehicleById(widget.reservation!.idVehiculo);
+              if (currentVehicle != null && !vehicles.any((v) => v.idVehiculo == currentVehicle.idVehiculo)) {
+                vehicles = [currentVehicle, ...vehicles];
+              }
+            }
+
+            // Asegurar que los valores seleccionados existan en las listas actuales
+            final clientIds = clients.map((c) => c.idCliente).toSet();
+            final vehicleIds = vehicles.map((v) => v.idVehiculo).toSet();
+            final validSelectedClientId = clientIds.contains(_selectedClientId) ? _selectedClientId : null;
+            final validSelectedVehicleId = vehicleIds.contains(_selectedVehicleId) ? _selectedVehicleId : null;
+
+            // Sincronizar estado si el valor actual dejó de ser válido
+            if (_selectedClientId != null && validSelectedClientId == null) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) setState(() => _selectedClientId = null);
+              });
+            }
+            if (_selectedVehicleId != null && validSelectedVehicleId == null) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) setState(() => _selectedVehicleId = null);
+              });
+            }
+
+            if (_selectedVehicleId != null) {
+              final selectedVehicleExists = vehicles.any((v) => v.idVehiculo == _selectedVehicleId);
+              if (!selectedVehicleExists) {
+                // Resetear la selección si el vehículo ya no está disponible
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    setState(() {
+                      _selectedVehicleId = null;
+                    });
+                  }
+                });
+              }
+            }
+
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownButtonFormField<String>(
+                  isExpanded: true,
                   decoration: InputDecoration(
                     labelText: 'Cliente *',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.person),
+                    prefixIcon: Icon(Icons.person, color: colorScheme.primary),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  items: clients.map((client) {
-                    return DropdownMenuItem<Client>(
-                      value: client,
-                      child: Text(client.nombreCompleto),
-                    );
-                  }).toList(),
-                  onChanged: (client) {
-                    setState(() {
-                      _selectedClient = client;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Debe seleccionar un cliente';
+                  value: validSelectedClientId,
+                  items: () {
+                    // Filtrar clientes para evitar IDs duplicados
+                    final Set<String> seenIds = <String>{};
+                    final List<DropdownMenuItem<String>> uniqueItems = [];
+                    
+                    for (final client in clients) {
+                      if (!seenIds.contains(client.idCliente)) {
+                        seenIds.add(client.idCliente);
+                        uniqueItems.add(DropdownMenuItem<String>(
+                          value: client.idCliente,
+                          child: Text(
+                            client.nombreCompleto,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        ));
+                      }
                     }
-                    return null;
-                  },
-                );
-              },
-            ),
-            SizedBox(height: 16),
-            
-            // Selector de Vehículo
-            Consumer<CarRentalProvider>(
-              builder: (context, provider, child) {
-                // Para editar reservas, incluir el vehículo actual aunque no esté disponible
-                final availableVehicles = widget.reservation != null 
-                    ? provider.vehicles.where((v) => v.disponible || v.idVehiculo == widget.reservation!.idVehiculo).toList()
-                    : provider.getAvailableVehicles();
-                
-                return DropdownButtonFormField<Vehicle>(
-                  value: _selectedVehicle,
+                    return uniqueItems;
+                  }(),
+                  onChanged: (clientId) => setState(() => _selectedClientId = clientId),
+                  validator: (v) => v == null ? 'Seleccione un cliente' : null,
+                ),
+                const SizedBox(height: 16),
+
+                DropdownButtonFormField<String>(
+                  isExpanded: true,
                   decoration: InputDecoration(
                     labelText: 'Vehículo *',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.directions_car),
-                    helperText: 'Solo se muestran vehículos disponibles',
+                    prefixIcon: Icon(Icons.directions_car, color: colorScheme.primary),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  items: availableVehicles.map((vehicle) {
-                    return DropdownMenuItem<Vehicle>(
-                      value: vehicle,
-                      child: Text('${vehicle.marca} ${vehicle.modelo} (${vehicle.ano})'),
-                    );
-                  }).toList(),
-                  onChanged: availableVehicles.isNotEmpty ? (vehicle) {
-                    setState(() {
-                      _selectedVehicle = vehicle;
-                    });
-                  } : null,
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Debe seleccionar un vehículo';
+                  value: validSelectedVehicleId,
+                  items: () {
+                    // Filtrar vehículos para evitar IDs duplicados
+                    final Set<String> seenIds = <String>{};
+                    final List<DropdownMenuItem<String>> uniqueItems = [];
+                    
+                    for (final vehicle in vehicles) {
+                      if (!seenIds.contains(vehicle.idVehiculo)) {
+                        seenIds.add(vehicle.idVehiculo);
+                        final vehicleName = '${vehicle.marca} ${vehicle.modelo} (${vehicle.anho})' +
+                            (vehicle.disponible ? '' : ' (no disponible)');
+                        uniqueItems.add(DropdownMenuItem<String>(
+                          value: vehicle.idVehiculo,
+                          child: Text(
+                            vehicleName,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        ));
+                      }
                     }
-                    return null;
-                  },
-                );
-              },
-            ),
-            SizedBox(height: 16),
-            
-            // Fecha de Inicio
-            InkWell(
-              onTap: () => _selectDate(context, true),
-              child: InputDecorator(
-                decoration: InputDecoration(
-                  labelText: 'Fecha de Inicio *',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.calendar_today),
+                    return uniqueItems;
+                  }(),
+                  onChanged: (vehicleId) => setState(() => _selectedVehicleId = vehicleId),
+                  validator: (v) => v == null ? 'Seleccione un vehículo' : null,
                 ),
-                child: Text(
-                  _fechaInicio == null 
-                      ? 'Seleccionar fecha'
-                      : '${_fechaInicio!.day.toString().padLeft(2, '0')}/${_fechaInicio!.month.toString().padLeft(2, '0')}/${_fechaInicio!.year}',
-                ),
-              ),
-            ),
-            SizedBox(height: 16),
-            
-            // Fecha de Fin
-            InkWell(
-              onTap: () => _selectDate(context, false),
-              child: InputDecorator(
-                decoration: InputDecoration(
-                  labelText: 'Fecha de Fin *',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.calendar_today),
-                ),
-                child: Text(
-                  _fechaFin == null 
-                      ? 'Seleccionar fecha'
-                      : '${_fechaFin!.day.toString().padLeft(2, '0')}/${_fechaFin!.month.toString().padLeft(2, '0')}/${_fechaFin!.year}',
-                ),
-              ),
-            ),
-            
-            // Mostrar duración si ambas fechas están seleccionadas
-            if (_fechaInicio != null && _fechaFin != null) ...[
-              SizedBox(height: 8),
-              Container(
-                padding: EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.access_time, size: 16, color: Colors.blue),
-                    SizedBox(width: 8),
-                    Text(
-                      'Duración: ${_fechaFin!.difference(_fechaInicio!).inDays + 1} día(s)',
-                      style: TextStyle(color: Colors.blue),
+                const SizedBox(height: 16),
+
+                _buildDateField('Inicio *', _inicio, () => _pickDate(true)),
+                const SizedBox(height: 16),
+                _buildDateField('Fin *', _fin, () => _pickDate(false)),
+                
+                if (_fechaError != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Row(
+                      children: [
+                        Icon(Icons.error, color: colorScheme.error, size: 16),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _fechaError!,
+                            style: TextStyle(
+                              color: colorScheme.error,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-            ],
-            
-            SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text('Cancelar'),
-                ),
-                SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: _saveReservation,
-                  child: Text(widget.reservation == null ? 'Crear Reserva' : 'Actualizar'),
-                ),
+                  ),
+                
+                const SizedBox(height: 24),
+                _buildActions(context, colorScheme),
               ],
-            ),
-          ],
+            );
+          },
         ),
       ),
+    );
+  }
+
+  Widget _buildDateField(String label, DateTime? date, VoidCallback onTap) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: onTap,
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: Icon(Icons.calendar_today, color: colorScheme.primary),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+        child: Text(
+          date == null
+              ? 'Seleccionar fecha'
+              : '${date.day}/${date.month}/${date.year}',
+          style: TextStyle(
+            color: date == null 
+                ? Theme.of(context).hintColor 
+                : null,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActions(BuildContext context, ColorScheme colorScheme) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+      child: Text('Cancelar',
+        style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.7))),
+        ),
+        const SizedBox(width: 8),
+        ElevatedButton(
+          onPressed: _save,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: colorScheme.primary,
+            foregroundColor: colorScheme.onPrimary,
+          ),
+          child: Text(widget.reservation == null ? 'Crear' : 'Actualizar'),
+        ),
+      ],
     );
   }
 }

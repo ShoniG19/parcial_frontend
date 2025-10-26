@@ -25,10 +25,10 @@ class CarRentalProvider extends ChangeNotifier {
   void _initializeData() {
     // Datos de ejemplo
     _vehicles.addAll([
-      Vehicle(idVehiculo: '1', marca: 'Toyota', modelo: 'Corolla', ano: 2020, disponible: true),
-      Vehicle(idVehiculo: '2', marca: 'Honda', modelo: 'Civic', ano: 2021, disponible: false),
-      Vehicle(idVehiculo: '3', marca: 'Ford', modelo: 'Focus', ano: 2019, disponible: true),
-      Vehicle(idVehiculo: '4', marca: 'Chevrolet', modelo: 'Cruze', ano: 2022, disponible: true),
+      Vehicle(idVehiculo: '1', marca: 'Toyota', modelo: 'Corolla', anho: 2020, disponible: true),
+      Vehicle(idVehiculo: '2', marca: 'Honda', modelo: 'Civic', anho: 2021, disponible: false),
+      Vehicle(idVehiculo: '3', marca: 'Ford', modelo: 'Focus', anho: 2019, disponible: true),
+      Vehicle(idVehiculo: '4', marca: 'Chevrolet', modelo: 'Cruze', anho: 2022, disponible: true),
     ]);
 
     _clients.addAll([
@@ -77,7 +77,9 @@ class CarRentalProvider extends ChangeNotifier {
   }
 
   List<Vehicle> getAvailableVehicles() {
-    return _vehicles.where((v) => v.disponible).toList();
+    // Eliminar duplicados por ID
+    final uniqueIds = <String>{};
+    return _vehicles.where((v) => v.disponible).where((v) => uniqueIds.add(v.idVehiculo)).toList();
   }
 
   List<Vehicle> filterVehicles(String query) {
@@ -138,7 +140,30 @@ class CarRentalProvider extends ChangeNotifier {
   void updateReservation(Reservation updatedReservation) {
     final index = _reservations.indexWhere((r) => r.idReserva == updatedReservation.idReserva);
     if (index != -1) {
+      final previous = _reservations[index];
       _reservations[index] = updatedReservation;
+
+      // Si cambió el vehículo asociado a la reserva, liberar el anterior y ocupar el nuevo
+      if (previous.idVehiculo != updatedReservation.idVehiculo) {
+        final oldVehicle = getVehicleById(previous.idVehiculo);
+        if (oldVehicle != null) {
+          updateVehicle(oldVehicle.copyWith(disponible: true));
+        }
+        final newVehicle = getVehicleById(updatedReservation.idVehiculo);
+        if (newVehicle != null) {
+          updateVehicle(newVehicle.copyWith(disponible: false));
+        }
+      } else {
+        // Si no cambió el vehículo pero cambió el estado activa, sincronizar disponibilidad
+        if (previous.activa && !updatedReservation.activa) {
+          final veh = getVehicleById(updatedReservation.idVehiculo);
+          if (veh != null) updateVehicle(veh.copyWith(disponible: true));
+        } else if (!previous.activa && updatedReservation.activa) {
+          final veh = getVehicleById(updatedReservation.idVehiculo);
+          if (veh != null) updateVehicle(veh.copyWith(disponible: false));
+        }
+      }
+
       notifyListeners();
     }
   }

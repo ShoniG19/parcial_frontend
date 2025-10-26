@@ -2,14 +2,14 @@ class Vehicle {
   String idVehiculo;
   String marca;
   String modelo;
-  int ano;
+  int anho;
   bool disponible;
 
   Vehicle({
     required this.idVehiculo,
     required this.marca,
     required this.modelo,
-    required this.ano,
+    required this.anho,
     this.disponible = true,
   });
 
@@ -19,7 +19,7 @@ class Vehicle {
       'idVehiculo': idVehiculo,
       'marca': marca,
       'modelo': modelo,
-      'ano': ano,
+      'anho': anho,
       'disponible': disponible,
     };
   }
@@ -30,7 +30,7 @@ class Vehicle {
       idVehiculo: json['idVehiculo'] ?? '',
       marca: json['marca'] ?? '',
       modelo: json['modelo'] ?? '',
-      ano: json['ano'] ?? 0,
+      anho: json['anho'] ?? 0,
       disponible: json['disponible'] ?? true,
     );
   }
@@ -43,8 +43,8 @@ class Vehicle {
     return idVehiculo.isNotEmpty && 
            marca.isNotEmpty && 
            modelo.isNotEmpty && 
-           ano > 1900 && 
-           ano <= DateTime.now().year + 1;
+           anho > 1900 && 
+           anho <= DateTime.now().year + 1;
   }
 
   // Método para copiar con modificaciones
@@ -52,20 +52,20 @@ class Vehicle {
     String? idVehiculo,
     String? marca,
     String? modelo,
-    int? ano,
+    int? anho,
     bool? disponible,
   }) {
     return Vehicle(
       idVehiculo: idVehiculo ?? this.idVehiculo,
       marca: marca ?? this.marca,
       modelo: modelo ?? this.modelo,
-      ano: ano ?? this.ano,
+      anho: anho ?? this.anho,
       disponible: disponible ?? this.disponible,
     );
   }
 
   @override
   String toString() {
-    return '$marca $modelo ($ano) - ${disponibilidadTexto}';
+    return '$marca $modelo ($anho) - $disponibilidadTexto';
   }
 }
